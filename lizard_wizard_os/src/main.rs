@@ -6,14 +6,14 @@ const VERSION: &str = "v0.1";
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
+    println!("{}", _info);
     loop {}
 }
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
-    use core::fmt::Write;
-    vga_buffer::WRITER.lock().write_str("Welcome to Lizard Wizard OS \n").unwrap();
-    write!(vga_buffer::WRITER.lock(), "You are running version {}", VERSION).unwrap();
-
+    println!("Welcome to Lizard Wizard OS");
+    println!("You are running version {}", VERSION);
+    panic!("ohw no :( it seems like we encountered a problem!");
     loop {}
 }
