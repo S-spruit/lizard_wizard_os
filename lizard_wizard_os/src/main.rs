@@ -1,9 +1,8 @@
 #![no_std]
 #![no_main]
-
+mod vga_buffer;
 use core::panic::PanicInfo;
-
-static HELLO: &[u8] = b"Hello World!";
+const VERSION: &str = "v0.1"; 
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -12,14 +11,9 @@ fn panic(_info: &PanicInfo) -> ! {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
-     let vga_buffer = 0xb8000 as *mut u8;
-
-    for (i, &byte) in HELLO.iter().enumerate() {
-        unsafe {
-            *vga_buffer.offset(i as isize * 2) = byte;
-            *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
-        }
-    }
+    use core::fmt::Write;
+    vga_buffer::WRITER.lock().write_str("Welcome to Lizard Wizard OS \n").unwrap();
+    write!(vga_buffer::WRITER.lock(), "You are running version {}", VERSION).unwrap();
 
     loop {}
 }
