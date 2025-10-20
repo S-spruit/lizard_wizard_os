@@ -28,10 +28,6 @@ pub extern "C" fn _start() -> ! {
     println!("You are running version {}", VERSION);
     lizard_wizard_os::init();
 
-     unsafe {
-        *(0xdeadbeef as *mut u8) = 42;
-    };
-
 
     #[cfg(test)]
     test_main();
