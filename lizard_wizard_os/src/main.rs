@@ -5,14 +5,15 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use lizard_wizard_os::{interrupts, println};
+use lizard_wizard_os::{println};
 const VERSION: &str = "v0.1"; 
 //test material
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    lizard_wizard_os::hlt_loop();
+
 }
 
 #[cfg(test)]
@@ -33,7 +34,7 @@ pub extern "C" fn _start() -> ! {
     test_main();
 
     
-    loop {}
+    lizard_wizard_os::hlt_loop();
 }
 
 

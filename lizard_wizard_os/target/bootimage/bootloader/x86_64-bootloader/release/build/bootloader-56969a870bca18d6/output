@@ -1,7 +1,7 @@
 cargo:rerun-if-changed=C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\Cargo.toml
 cargo:rustc-link-search=native=C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\target\bootimage\bootloader\x86_64-bootloader\release\build\bootloader-56969a870bca18d6\out
-cargo:rustc-link-lib=static=kernel_bin-stack_overflow-d96f8e7f84ad7eb1
+cargo:rustc-link-lib=static=kernel_bin-lizard_wizard_os
 cargo:rerun-if-env-changed=KERNEL
 cargo:rerun-if-env-changed=KERNEL_MANIFEST
-cargo:rerun-if-changed=\\?\C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\target\x86_64-lizard-wizard\debug\deps\stack_overflow-d96f8e7f84ad7eb1
+cargo:rerun-if-changed=\\?\C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\target\x86_64-lizard-wizard\debug\lizard_wizard_os
 cargo:rerun-if-changed=build.rs
