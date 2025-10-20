@@ -1,0 +1,1 @@
+C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\target\x86_64-lizard-wizard\debug\liblizard_wizard_os.rlib: C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\src\interrupts.rs C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\src\lib.rs C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\src\serial.rs C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\src\vga_buffer.rs

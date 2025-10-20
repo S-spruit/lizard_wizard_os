@@ -5,7 +5,7 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use lizard_wizard_os::println;
+use lizard_wizard_os::{interrupts, println};
 const VERSION: &str = "v0.1"; 
 //test material
 #[cfg(not(test))]
@@ -26,8 +26,17 @@ fn panic(info: &PanicInfo) -> ! {
 pub extern "C" fn _start() -> ! {
     println!("Welcome to Lizard Wizard OS");
     println!("You are running version {}", VERSION);
+    lizard_wizard_os::init();
+
+     unsafe {
+        *(0xdeadbeef as *mut u8) = 42;
+    };
+
+
     #[cfg(test)]
     test_main();
+
+    
     loop {}
 }
 
