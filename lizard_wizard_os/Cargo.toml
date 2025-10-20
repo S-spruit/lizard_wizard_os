@@ -3,10 +3,19 @@ name = "lizard_wizard_os"
 version = "0.1.0"
 edition = "2024"
 
+
+[package.metadata.bootimage]
+test-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", "-serial", "stdio",
+"-display", "none"]
+test-success-exit-code = 33  
+test-timeout = 300
+
 [dependencies]
 bootloader = "0.9"
 volatile = "0.2.6"
 spin = "0.5.2"
+x86_64 = "0.14.2"
+uart_16550 = "0.2.0"
 
 [dependencies.lazy_static]
 version = "1.0"
@@ -21,5 +30,5 @@ panic = "abort"
 
 [[bin]]
 name = "lizard_wizard_os"
-test = false
+test = true
 bench = false
