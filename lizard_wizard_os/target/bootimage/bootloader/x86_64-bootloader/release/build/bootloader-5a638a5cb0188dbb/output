@@ -1,0 +1,7 @@
+cargo:rerun-if-changed=C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\Cargo.toml
+cargo:rustc-link-search=native=C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\target\bootimage\bootloader\x86_64-bootloader\release\build\bootloader-5a638a5cb0188dbb\out
+cargo:rustc-link-lib=static=kernel_bin-lizard_wizard_os
+cargo:rerun-if-env-changed=KERNEL
+cargo:rerun-if-env-changed=KERNEL_MANIFEST
+cargo:rerun-if-changed=\\?\C:\Users\spr\docs\lizard_wizard_os\lizard_wizard_os\target\x86_64-lizard-wizard\debug\lizard_wizard_os
+cargo:rerun-if-changed=build.rs
