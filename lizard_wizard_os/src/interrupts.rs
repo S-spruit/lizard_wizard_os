@@ -1,5 +1,7 @@
+use pc_keyboard::KeyCode;
 use x86_64::structures::idt::PageFaultErrorCode;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
+use crate::vga_buffer::WRITER;
 use crate::{hlt_loop, print};
 use crate::println;
 use crate::gdt;
@@ -92,8 +94,21 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStac
     if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
         if let Some(key) = keyboard.process_keyevent(key_event) {
             match key {
-                DecodedKey::Unicode(character) => print!("{}", character),
-                DecodedKey::RawKey(key) => print!("{:?}", key), //this is where the match will come later to act accordingly when doing enter, backspace, del, etc.
+                DecodedKey::Unicode(character) => {
+                    match character {
+                        '\x08' => WRITER.lock().clear_char(),
+                        // '\n' => WRITER.lock(),
+                        _ => print!("{}", character)
+                    }
+                },
+                DecodedKey::RawKey(key) => {
+                    match key {
+                        KeyCode::Backspace => {
+                            WRITER.lock().clear_char();
+                        },
+                        _ => print!("{:?}", key)
+                    }
+                }, //this is where the match will come later to act accordingly when doing enter, backspace, del, etc.
             }
         }
     }

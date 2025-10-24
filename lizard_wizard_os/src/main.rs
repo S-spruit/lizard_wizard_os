@@ -8,7 +8,7 @@ use bootloader::{BootInfo, entry_point};
 use core::panic::PanicInfo;
 use lizard_wizard_os::{memory::{self, translate_addr, BootInfoFrameAllocator}, println};
 use x86_64::{structures::paging::Page, VirtAddr};
-const VERSION: &str = "v0.1";
+const VERSION: &str = "v0.1.1";
 //test material
 #[cfg(not(test))]
 #[panic_handler]

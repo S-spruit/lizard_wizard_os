@@ -116,6 +116,37 @@ impl Writer {
             self.buffer.chars[row][col].write(blank);
         }
     }
+    pub fn clear_char(&mut self) {
+        let row = BUFFER_HEIGHT - 1;
+        let col = self.column_position;
+        let blank = ScreenChar {
+            ascii_char: b' ',
+            color_code: self.color_code,
+        };
+        
+        if self.column_position != 0 {
+            self.column_position -= 1;
+        } else if self.column_position == 0 {
+            self.un_scroll();
+        }
+        
+        self.buffer.chars[row][col].write(blank);
+    }
+
+    pub fn un_scroll(&mut self) {
+    use crate::vga_buffer::{BUFFER_HEIGHT, BUFFER_WIDTH};
+    
+  
+    for row in (0..BUFFER_HEIGHT - 1).rev() { 
+        for col in 0..BUFFER_WIDTH {
+            
+            let character = self.buffer.chars[row][col].read();
+            self.buffer.chars[row + 1][col].write(character);
+        }
+    }
+    self.clear_row(0); 
+    self.column_position = BUFFER_WIDTH - 1;
+}
 }
 #[macro_export]
 macro_rules! print {
@@ -137,6 +168,8 @@ pub fn _print(args: fmt::Arguments) {
     });
     
 }
+
+
 
 lazy_static! {
     pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
