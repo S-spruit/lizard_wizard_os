@@ -20,6 +20,8 @@ pub static PICS: spin::Mutex<ChainedPics> = spin::Mutex::new(unsafe {
 pub enum InterruptIndex {
     Timer = PIC_1_OFFSET,
     Keyboard,
+
+    RealTimeClock = PIC_2_OFFSET
 }
 impl InterruptIndex {
     fn as_u8(self) -> u8 {
@@ -44,6 +46,7 @@ lazy_static! {
         idt.page_fault.set_handler_fn(page_fault_handler);
         idt[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
         idt[InterruptIndex::Keyboard.as_usize()].set_handler_fn(keyboard_interrupt_handler);
+        idt[InterruptIndex::RealTimeClock.as_usize()].set_handler_fn(rtc_interrupt_handler);
         idt
     };
 }
@@ -117,6 +120,14 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStac
         .notify_end_of_interrupt(InterruptIndex::Keyboard.as_u8());
     }
 }
+
+extern "x86-interrupt" fn rtc_interrupt_handler(_stack_frame: InterruptStackFrame) {
+    unsafe {
+        PICS.lock()
+        .notify_end_of_interrupt(InterruptIndex::RealTimeClock.as_u8());
+    }
+}
+
 
 #[test_case]
 fn test_breakpoint_exception() {

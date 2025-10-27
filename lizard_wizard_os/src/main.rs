@@ -27,8 +27,8 @@ entry_point!(kernel_main);
 
 #[unsafe(no_mangle)]
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
-    println!("Welcome to Lizard Wizard OS");
-    println!("You are running version {}", VERSION);
+    println!(" Welcome to Lizard Wizard OS ");
+    println!(" You are running version {} ", VERSION);
     lizard_wizard_os::init();
 
     let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);

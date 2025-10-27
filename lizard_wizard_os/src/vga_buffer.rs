@@ -118,7 +118,7 @@ impl Writer {
     }
     pub fn clear_char(&mut self) {
         let row = BUFFER_HEIGHT - 1;
-        let col = self.column_position;
+        let mut col = self.column_position;
         let blank = ScreenChar {
             ascii_char: b' ',
             color_code: self.color_code,
@@ -128,6 +128,7 @@ impl Writer {
             self.column_position -= 1;
         } else if self.column_position == 0 {
             self.un_scroll();
+            col = self.column_position;
         }
         
         self.buffer.chars[row][col].write(blank);
@@ -145,7 +146,7 @@ impl Writer {
         }
     }
     self.clear_row(0); 
-    self.column_position = BUFFER_WIDTH - 1;
+    self.column_position = BUFFER_WIDTH;
 }
 }
 #[macro_export]
