@@ -45,6 +45,9 @@ struct ScreenChar {
 
 const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
+const WRITABLE_BUFFER_HEIGHT: usize = 24;
+const STATUS_BAR_ROW: usize = 24;
+const STATUS_BAR_ITEMS: usize = 9;
 
 #[repr(transparent)]
 struct Buffer {
@@ -72,7 +75,7 @@ impl Writer {
                     self.new_line();
                 }
 
-                let row = BUFFER_HEIGHT - 1;
+                let row = WRITABLE_BUFFER_HEIGHT - 1;
                 let col = self.column_position;
 
                 let color_code = self.color_code;
@@ -98,13 +101,13 @@ impl Writer {
     
 
     fn new_line(&mut self) {
-        for row in 1..BUFFER_HEIGHT {
+        for row in 1..WRITABLE_BUFFER_HEIGHT {
             for col in 0..BUFFER_WIDTH {
                 let character = self.buffer.chars[row][col].read();
                 self.buffer.chars[row - 1][col].write(character);
             }
         }
-        self.clear_row(BUFFER_HEIGHT - 1);
+        self.clear_row(WRITABLE_BUFFER_HEIGHT - 1);
         self.column_position = 0;
     }
     fn clear_row(&mut self, row: usize) {
@@ -117,7 +120,7 @@ impl Writer {
         }
     }
     pub fn clear_char(&mut self) {
-        let row = BUFFER_HEIGHT - 1;
+        let row = WRITABLE_BUFFER_HEIGHT - 1;
         let mut col = self.column_position;
         let blank = ScreenChar {
             ascii_char: b' ',
@@ -135,10 +138,10 @@ impl Writer {
     }
 
     pub fn un_scroll(&mut self) {
-    use crate::vga_buffer::{BUFFER_HEIGHT, BUFFER_WIDTH};
+    use crate::vga_buffer::{BUFFER_WIDTH};
     
   
-    for row in (0..BUFFER_HEIGHT - 1).rev() { 
+    for row in (0..WRITABLE_BUFFER_HEIGHT - 1).rev() { 
         for col in 0..BUFFER_WIDTH {
             
             let character = self.buffer.chars[row][col].read();
@@ -148,6 +151,28 @@ impl Writer {
     self.clear_row(0); 
     self.column_position = BUFFER_WIDTH;
 }
+
+pub fn write_status(&mut self, content: &str) {
+    let mut col = 0;
+    self.clear_row(STATUS_BAR_ROW);
+    
+       for byte in content.bytes() {
+        if col >= BUFFER_WIDTH {
+            break;
+        }
+        match byte {
+           0x20..=0x7e => {
+            let color_code = ColorCode::new(Color::White, Color::Blue);
+            self.buffer.chars[STATUS_BAR_ROW][col].write(ScreenChar { ascii_char: byte, color_code });
+            col += 1
+           } 
+           _ => {}
+        }
+    
+    }
+    
+}
+
 }
 #[macro_export]
 macro_rules! print {
@@ -172,6 +197,7 @@ pub fn _print(args: fmt::Arguments) {
 
 
 
+
 lazy_static! {
     pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
         column_position: 0,
@@ -191,7 +217,7 @@ fn test_println_output() {
         let mut writer = WRITER.lock();
         writeln!(writer, "\n{}", s).expect("writeln failed");
         for (i, c) in s.chars().enumerate() {
-            let screen_char = writer.buffer.chars[BUFFER_HEIGHT - 2][i].read();
+            let screen_char = writer.buffer.chars[WRITABLE_BUFFER_HEIGHT - 2][i].read();
             assert_eq!(char::from(screen_char.ascii_char), c);
         }
     });

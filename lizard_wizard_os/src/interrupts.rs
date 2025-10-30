@@ -1,8 +1,10 @@
 use pc_keyboard::KeyCode;
+use x86_64::instructions::interrupts;
+use x86_64::instructions::port::{PortGeneric, ReadWriteAccess};
 use x86_64::structures::idt::PageFaultErrorCode;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 use crate::vga_buffer::WRITER;
-use crate::{hlt_loop, print};
+use crate::{VERSION, hlt_loop, print};
 use crate::println;
 use crate::gdt;
 use lazy_static::lazy_static;
@@ -77,6 +79,7 @@ extern "x86-interrupt" fn page_fault_handler(stack_frame: InterruptStackFrame, e
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
     // print!(".");
+    
 
     unsafe {
         PICS.lock()
@@ -122,15 +125,108 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStac
 }
 
 extern "x86-interrupt" fn rtc_interrupt_handler(_stack_frame: InterruptStackFrame) {
+    use x86_64::instructions::port::Port;
+    let mut command_port: PortGeneric<u8, ReadWriteAccess> = Port::new(0x70);
+    let mut data_port: PortGeneric<u8, ReadWriteAccess> = Port::new(0x71);
+
+    let mut seconds: u8 = 0;
+    let mut minutes: u8 = 0;
+    let mut hours: u8 = 0;
+    //https://wiki.osdev.org/RTC
+
+    unsafe {
+        // interrupts::disable();
+
+        command_port.write(0x00);
+        seconds = data_port.read();
+
+        command_port.write(0x02);
+        minutes = data_port.read();
+
+        command_port.write(0x04);
+        hours = data_port.read();
+
+        let reg_b = unsafe {
+        command_port.write(0x0B);
+        data_port.read()
+        };
+
+        let is_bcd = (reg_b & 0x04) == 0; // Bit 2 clear usually means BCD format
+    
+        if is_bcd {
+        // You MUST convert if in BCD format
+            seconds = bcd_to_bin(seconds);
+            minutes = bcd_to_bin(minutes);
+            hours = bcd_to_bin(hours);
+        }
+
+        let mut buffer = [0u8; 80]; 
+        let mut writer = ArrayWriter::new(&mut buffer);
+        let _ = write!(writer, "LizWizOS {} ------------------------------------------------------- {:02}:{:02}:{:02}", VERSION, hours, minutes,seconds);
+        let statusbar = writer.as_str().unwrap_or("invalid status bar");
+        WRITER.lock().write_status(statusbar);
+
+        
+
+        
+        
+        command_port.write(0x0C as u8);
+        data_port.read();
+
+        // interrupts::enable();
+    }
+    
+    
+
     unsafe {
         PICS.lock()
         .notify_end_of_interrupt(InterruptIndex::RealTimeClock.as_u8());
     }
 }
-
+fn bcd_to_bin(bcd: u8) -> u8 {
+    (bcd >> 4) * 10 + (bcd & 0x0F)
+}
 
 #[test_case]
 fn test_breakpoint_exception() {
     // invoke a breakpoint exception
     x86_64::instructions::interrupts::int3();
+}
+
+// str formatter
+use core::fmt::{self, Write};
+
+// A simple wrapper around a mutable slice to implement fmt::Write
+pub struct ArrayWriter<'a> {
+    buffer: &'a mut [u8],
+    offset: usize,
+}
+
+impl<'a> ArrayWriter<'a> {
+    pub fn new(buffer: &'a mut [u8]) -> Self {
+        ArrayWriter { buffer, offset: 0 }
+    }
+    
+    // Convert the buffer content (if valid UTF-8) to a string slice
+    pub fn as_str(&self) -> Result<&str, core::str::Utf8Error> {
+        core::str::from_utf8(&self.buffer[..self.offset])
+    }
+}
+
+// Implement the core trait required by the write! macro
+impl<'a> Write for ArrayWriter<'a> {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        let bytes = s.as_bytes();
+        let len = bytes.len();
+
+        if self.offset + len > self.buffer.len() {
+            return Err(fmt::Error); // Buffer overflow
+        }
+
+        // Copy bytes into the buffer
+        self.buffer[self.offset..self.offset + len].copy_from_slice(bytes);
+        self.offset += len;
+        
+        Ok(())
+    }
 }

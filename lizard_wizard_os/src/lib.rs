@@ -11,11 +11,15 @@ use core::panic::PanicInfo;
 use bootloader::entry_point;
 #[cfg(test)]
 use bootloader::BootInfo;
+use x86_64::instructions::port::{PortGeneric, ReadWriteAccess};
 pub mod interrupts;
 pub mod gdt;
 pub mod serial;
 pub mod memory;
 pub mod vga_buffer;
+
+pub const VERSION: &str = "v0.1.1";
+
 pub trait Testable {
     fn run(&self) -> ();
 }
@@ -34,9 +38,37 @@ where
 pub fn init() {
     gdt::init();
     interrupts::init_idt();
+    init_rtc();
     unsafe { interrupts::PICS.lock().initialize();};
     x86_64::instructions::interrupts::enable();
 }
+
+fn init_rtc() {
+    use x86_64::instructions::port::Port;
+    let mut command_port: PortGeneric<u8, ReadWriteAccess> = Port::new(0x70);
+    let mut data_port: PortGeneric<u8, ReadWriteAccess> = Port::new(0x71);
+    unsafe {
+        // DISABLE NMI
+        command_port.write(0x8A as u8);
+
+        //read register A
+        command_port.write(0x0A as u8);
+        let prev = data_port.read();
+        command_port.write(0x0A as u8);
+
+        //set rate to 1hz?
+        data_port.write((prev & 0xF0) | 0x0F);
+
+        command_port.write(0x8B as u8);
+        let prev = data_port.read();
+        command_port.write(0x8B);
+        data_port.write(prev | 0x40);
+
+        
+    }
+    
+}
+
 
 pub fn hlt_loop() -> ! {
     loop {
@@ -91,3 +123,4 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
         port.write(exit_code as u32);
     }
 }
+
